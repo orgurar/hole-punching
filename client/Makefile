@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=
 
 client:
-	${CC} ${CFLAGS} -o bin/$@.out src/main.c
+	${CC} ${CFLAGS} -o bin/$@ src/main.c
 
 clean:
 	-rm -f *.o *.out bin/*
