@@ -99,7 +99,7 @@ int main(void)
                 // Once again, the payload is irrelevant. Feel free to send your VoIP
                 // data in here.
                 if (sendto(sockfd, "p2p", 3, 0, (struct sockaddr *)(&clientaddr), addrsize) == SOCKERR)
-                    diep("ERR: cannot send");
+                    term("ERR: cannot send");
             }
         }
         else
