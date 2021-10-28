@@ -1,7 +1,7 @@
 #include "framework.h"
 #include "peer.h"
 
-int main(void)
+int main(int argc, char **argv)
 {
     // client socket
     // we will use this socket to communicate both with
@@ -19,6 +19,9 @@ int main(void)
     // this will allow us to easy identify server datagrams
     struct peer server;
 
+    if (argc < 2)
+        term("ERR: usage: client <rendzvous_ip>");
+
     // initiate our address and local endpoint
     memset((char *)&clientaddr, 0, sizeof(clientaddr));
     clientaddr.sin_family = AF_INET;
@@ -29,7 +32,7 @@ int main(void)
     memset((char *)&servaddr, 0, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(SERVPORT);
-    if (inet_aton(SERVADDR, &servaddr.sin_addr) == 0)
+    if (inet_aton(argv[1], &servaddr.sin_addr) == 0)
         term("ERR: aton server ip");
 
     // store server information in peer struct as well
