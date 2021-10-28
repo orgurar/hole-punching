@@ -1,6 +1,6 @@
 #include "framework.h"
 
-// terminate function in case something goes wrong
+// terminate program in case something goes wrong
 void term(char *e)
 {
     perror(e);
@@ -14,15 +14,14 @@ int main(void)
     int i, j, n = 0;
 
     // server socket and address
+    // remember that the server should run in a different network
+    // with UDP endpoint previously known and directly accessible by all peers.
+    // in other words, it musn't hide behine a NAT!
     struct sockaddr_in servaddr;
     int sockfd;
 
-    // initiate servaddr to our local endpoint.
-    // remember that the server should run in a different network
-    // with UDP endpoint previously known and directly accessible
-    // by all clients. The server cannot be behind a NAT!
+    // initiate servaddr to our local endpoint and Filling its information
     memset((char *)&servaddr, 0, sizeof(servaddr));
-    // Filling server information
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(PORT);
     servaddr.sin_addr.s_addr = INADDR_ANY;
@@ -40,22 +39,22 @@ int main(void)
     if (bind(sockfd, (struct sockaddr *)(&servaddr), sizeof(servaddr)) == SOCKERR)
         term("bind failed");
 
-    // start listening to client hole punch datagrams
+    // server is listening, now we start to
+    // accept client hole punch datagrams
     while (1)
     {
         // current connecting client info
         struct sockaddr_in clientaddr;
-        int slen = sizeof(clientaddr);
+        int addrsize = sizeof(clientaddr);
         char buf[BUFSIZE];
 
         // udp message received from a new client
-        // The client's public UDP endpoint data is now in si_other.
-        // the server doesn't care about the datagram's payload,
-        // the client's NAT has created the entry
-        if (recvfrom(sockfd, buf, BUFSIZE, 0, (struct sockaddr *)(&clientaddr), &slen) == SOCKERR)
-            diep("socket recive failed");
+        // insert the client UDP public endpoint into clientaddr struct
+        if (recvfrom(sockfd, buf, BUFSIZE, 0, (struct sockaddr *)(&clientaddr), &addrsize) == SOCKERR)
+            term("socket recive failed");
 
-        printf("%s:%d Just Punched a Hole!\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
+        // the client's NAT has created the entry
+        printf("%s:%d has just Punched a Hole!\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
 
         // add the new client to our local UDP endpoints list
         clients[n].host = clientaddr.sin_addr.s_addr;
@@ -63,7 +62,6 @@ int main(void)
         n++;
 
         // then notify all the connected peers
-        // And then tell everybody about everybody's public UDP endpoints
         for (i = 0; i < n; i++)
         {
             // create a temp client address object
@@ -71,17 +69,16 @@ int main(void)
             clientaddr.sin_port = clients[i].port;
 
             // send a datagram to each client in our list
+            printf("Sending to %s:%d\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
             for (j = 0; j < n; j++)
             {
-                printf("Sending to %s:%d\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
-
                 // The payload is the client's public UDP endpoint, clients[j]
-                if (sendto(sockfd, &clients[j], 6, 0, (struct sockaddr *)(&clientaddr), slen) == SOCKERR)
-                    diep("socket send failed");
+                if (sendto(sockfd, &clients[j], 6, 0, (struct sockaddr *)(&clientaddr), addrsize) == SOCKERR)
+                    term("socket send failed");
             }
         }
 
-        printf("%d peers are currently available\n", n);
+        printf("%d peers are currently connected\n", n);
     }
 
     close(sockfd);
