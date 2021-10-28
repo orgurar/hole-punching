@@ -18,6 +18,7 @@
 
 #define SERVADDR "213.57.241.210"
 #define SERVPORT 8080
+
 #define BUFSIZE 512
 
 #define MAXCLIENTS 5
