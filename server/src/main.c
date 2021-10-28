@@ -1,15 +1,9 @@
 #include "framework.h"
-
-// terminate program in case something goes wrong
-void term(char *e)
-{
-    perror(e);
-    exit(1);
-}
+#include "peer.h"
 
 int main(void)
 {
-    // local list of connected client, up to 3
+    // local list of connected client, up to 5
     struct peer clients[MAXCLIENTS];
     int i, j, n = 0;
 
@@ -20,7 +14,8 @@ int main(void)
     struct sockaddr_in servaddr;
     int sockfd;
 
-    // initiate servaddr to our local endpoint and Filling its information
+    // initiate server address to our local endpoint
+    // and Filling its information
     memset((char *)&servaddr, 0, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(PORT);
@@ -31,6 +26,8 @@ int main(void)
     // SOCK_DGRAM means UDP protocol
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == SOCKERR)
         term("socket creation failed");
+    else
+        printf("[+] server socket connected seccessfully\n");
 
     // When a socket is created with socket(), it exists in a name
     // space(address family) but has no address assigned to it.
@@ -38,9 +35,12 @@ int main(void)
     // by the file descriptor sockfd.
     if (bind(sockfd, (struct sockaddr *)(&servaddr), sizeof(servaddr)) == SOCKERR)
         term("bind failed");
+    else
+        printf("[+] socket binded\n");
 
     // server is listening, now we start to
     // accept client hole punch datagrams
+    printf("[+] listening to incoming datagrams\n");
     while (1)
     {
         // current connecting client info
@@ -54,7 +54,7 @@ int main(void)
             term("socket recive failed");
 
         // the client's NAT has created the entry
-        printf("%s:%d has just Punched a Hole!\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
+        printf("%s:%d has just punched a hole!\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
 
         // add the new client to our local UDP endpoints list
         clients[n].host = clientaddr.sin_addr.s_addr;
@@ -69,7 +69,7 @@ int main(void)
             clientaddr.sin_port = clients[i].port;
 
             // send a datagram to each client in our list
-            printf("Sending to %s:%d\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
+            printf("Nofity %s:%d\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
             for (j = 0; j < n; j++)
             {
                 // The payload is the client's public UDP endpoint, clients[j]
@@ -78,6 +78,7 @@ int main(void)
             }
         }
 
+        // total peers conected
         printf("%d peers are currently connected\n", n);
     }
 

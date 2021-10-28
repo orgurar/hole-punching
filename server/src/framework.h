@@ -18,13 +18,13 @@
 
 #define PORT 8080
 #define BUFSIZE 512
+
+#define MAXCLIENTS 5
 #define SOCKERR -1
 
-#define MAXCLIENTS 3
-
-// a small struct used to hold a UDP peer connected
-struct peer
+// terminate program in case something goes wrong
+void term(char *e)
 {
-    int host;
-    short port;
-};
+    perror(e);
+    exit(1);
+}
