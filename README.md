@@ -50,4 +50,4 @@ Again, you can compile yourself if you would like to from client's source couse.
 
 ## License
 
-Doraemon is licensed under the MIT license, see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT license, see the [LICENSE](LICENSE) file for details.
